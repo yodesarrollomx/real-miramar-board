@@ -7,7 +7,7 @@
 <title>Inicio · Real de Miramar</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/estilo.css?v=26">
+<link rel="stylesheet" href="assets/estilo.css?v=27">
 <link rel="stylesheet" href="https://alexpueblag.github.io/yod-portal/os/shell.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.24.0/dist/tabler-icons.min.css">
 </head>
@@ -116,7 +116,7 @@ window.renderPage=function(B){
       var campo=lens.campo||'responsable_nombre', sinL=lens.sinLabel||'Sin asignar';
       var by={}; lista.forEach(function(t){var r=t[campo]||sinL;(by[r]=by[r]||[]).push(t);});
       var ng=Object.keys(by).length;
-      var tb=function(v,tx){return '<button data-v="'+v+'" style="border:1px solid rgba(255,255,255,.16);background:'+(GVISTA===v?'var(--oro,#c9a96e)':'transparent')+';color:'+(GVISTA===v?'#0a0a0c':'var(--carbon,#b6b3aa)')+';font:inherit;font-size:11px;padding:2px 9px;border-radius:6px;cursor:pointer;margin-left:6px;">'+tx+'</button>';};
+      var tb=function(v,tx){return '<button data-v="'+v+'" style="border:1px solid var(--linea);background:'+(GVISTA===v?'var(--oro)':'transparent')+';color:'+(GVISTA===v?'var(--crema)':'var(--carbon)')+';font:inherit;font-size:11px;padding:2px 9px;border-radius:6px;cursor:pointer;margin-left:6px;">'+tx+'</button>';};
       var head='<div class="ifhead"><b>'+ng+'</b> grupos · '+lista.length+' trámites'+(pend<lista.length?(' ('+pend+' por cerrar)'):'')+'<span style="float:right;">'+tb('gantt','▦ Gantt')+tb('lista','▤ Lista')+'</span></div>';
       if(GVISTA==='lista'){
         var keys=Object.keys(by).sort(function(a,b){return by[b].length-by[a].length;});
@@ -169,7 +169,7 @@ window.renderPage=function(B){
       else{var t=f.t,x1=X(t._i),w=Math.max(7,X(t._f)-x1),ic=(t.urg?"🔥":"")+(t.rc==='banco'?"🏦":(t.rc==='fisica'?"🏗":""));
         b+='<div class="grow"><div class="gl" style="width:'+LW+'px;" data-id="'+B.esc(t.id)+'" title="'+B.esc(t.nombre)+'"><span class="tid">'+B.esc(t.id)+'</span><span style="overflow:hidden;text-overflow:ellipsis;">'+(t.ico?(B.esc(t.ico)+' '):'')+B.esc(t.nombre)+'</span><span class="ic">'+ic+'</span></div><div class="zona" style="width:'+chartW+'px;"><div class="gbar '+t.estado+(t._inf?" inferido":"")+'" data-id="'+B.esc(t.id)+'" style="left:'+x1+'px;width:'+w+'px;" title="'+B.esc(t.id+" · "+t.nombre)+'"></div></div></div>';}
     });
-    b+='<svg class="garrows" style="left:'+LW+'px;width:'+chartW+'px;height:'+totalH+'px;"><defs><marker id="igah" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6" fill="none" stroke="#e0c590" stroke-width="1.2"/></marker></defs>'+paths+'</svg>';
+    b+='<svg class="garrows" style="left:'+LW+'px;width:'+chartW+'px;height:'+totalH+'px;"><defs><marker id="igah" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6" fill="none" stroke="var(--oroc)" stroke-width="1.2"/></marker></defs>'+paths+'</svg>';
     b+='<div class="ghoyl" style="left:'+(LW+X(hoy))+'px;"><span>hoy</span></div></div></div>';
     B.$(target).innerHTML=b;
     Array.prototype.forEach.call(document.querySelectorAll('#'+target+' [data-id]'),function(el){el.onclick=function(){abrirDrw(el.getAttribute('data-id'));};});
@@ -190,7 +190,7 @@ window.renderPage=function(B){
     var docs='',lk=String(t.link||"").trim();
     if(/^https?:\/\//i.test(lk))docs+='<a class="btn ghost" href="'+B.esc(lk)+'" target="_blank" rel="noopener" style="text-decoration:none;display:block;margin:4px 0;">📂 Abrir el documento principal →</a>';
     var sop=[];try{sop=JSON.parse(t.soportes||"[]");}catch(e){sop=[];}
-    if(sop.length){docs+='<div class="dchd">Soportes ('+sop.length+')</div>'+sop.map(function(s){return /^https?:\/\//i.test(String(s.u||""))?('<a href="'+B.esc(s.u)+'" target="_blank" rel="noopener" style="display:block;font-size:12.5px;padding:2px 0;color:var(--oroc,#e0c590);text-decoration:none;">📎 '+B.esc(s.t||"archivo")+'</a>'):"";}).join("");}
+    if(sop.length){docs+='<div class="dchd">Soportes ('+sop.length+')</div>'+sop.map(function(s){return /^https?:\/\//i.test(String(s.u||""))?('<a href="'+B.esc(s.u)+'" target="_blank" rel="noopener" style="display:block;font-size:12.5px;padding:2px 0;color:var(--oroc);text-decoration:none;">📎 '+B.esc(s.t||"archivo")+'</a>'):"";}).join("");}
     var items=entItems(t);
     if(items.length){docs+='<div class="dchd">Entregables que acompañan el ingreso</div>';items.forEach(function(it,i){var si=/=si$/i.test(it);var txt=it.replace(/=(si|no)$/i,'').trim();docs+='<div class="ichk" onclick="toggleEnt(\''+t.tramite_id+'\','+i+')"><span class="bx">'+(si?'☑':'☐')+'</span> '+B.esc(txt)+'</div>';});}
     /* formato_url es prosa con URLs incrustadas ("Hidrantes https://… · drenaje: CEA

@@ -9,8 +9,10 @@
 /* Identidad YoDesarrollo · registro Fintech Editorial (oscuro + crema + oro).
    Las vars conservan su nombre histórico pero se redefinen POR ROL:
    --negro = tinta/primer plano · --crema = fondo página · --arena = superficie alterna. */
-:root{--negro:#231d14;--crema:#f6f3ed;--arena:#eee9df;--piedra:#766f62;--carbon:#8a8272;--linea:#e1dacb;
-  --verde:#39744b;--amar:#9a6a1e;--rojo:#a94438;--rojoclaro:#b5564d;--azul:#9a7b3f;--oro:#9a7b3f;--oroc:#b98b3c;
+:root{--negro:#231d14;--crema:#f6f3ed;--arena:#eee9df;--piedra:#6d6455;--carbon:#6f675a;--linea:#e1dacb;
+  /* --piedra-fill: el valor histórico de --piedra, SOLO para fondos/rellenos (dots, barras, tags) */
+  --piedra-fill:#766f62;
+  --verde:#39744b;--amar:#9a6a1e;--rojo:#a94438;--rojoclaro:#b5564d;--azul:#7d5f1e;--oro:#7d5f1e;--oroc:#7d5f1e;
   /* superficie de tarjeta (portero no la voltea) */ --sup:#ffffff;}
 *{box-sizing:border-box;}
 body{margin:0;background:linear-gradient(rgba(35,29,20,.02) 1px,transparent 1px) 0 0/60px 60px,linear-gradient(90deg,rgba(35,29,20,.02) 1px,transparent 1px) 0 0/60px 60px,var(--crema);color:var(--negro);font-family:'Instrument Sans','Manrope','Helvetica Neue',Arial,sans-serif;line-height:1.55;-webkit-font-smoothing:antialiased;color-scheme:light;}
@@ -39,7 +41,7 @@ header{background:var(--sup);border-bottom:1px solid var(--linea);padding:10px 1
 .tab.on{background:rgba(154,123,63,.2);color:var(--negro);border-color:transparent;}
 .tab .lk{font-size:10px;}
 #badge{display:flex;align-items:center;gap:6px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--carbon);border:1px solid var(--linea);border-radius:20px;padding:5px 11px;cursor:pointer;background:transparent;}
-#badge .dot{width:8px;height:8px;border-radius:50%;background:var(--piedra);}
+#badge .dot{width:8px;height:8px;border-radius:50%;background:var(--piedra-fill);}
 #badge[data-s="live"]{color:var(--verde);} #badge[data-s="live"] .dot{background:var(--verde);}
 #badge[data-s="cache"] .dot{background:var(--amar);} #badge[data-s="error"] .dot{background:var(--rojo);}
 #badge[data-s="loading"] .dot{background:var(--negro);animation:pulse 1s infinite;}
@@ -77,7 +79,7 @@ header{background:var(--sup);border-bottom:1px solid var(--linea);padding:10px 1
 .tile .tt{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--piedra);}
 .tile .tv{font-size:12px;color:var(--negro);margin-top:7px;line-height:1.5;}
 .tile.oscuro{background:var(--negro);color:var(--crema);}
-.tile.oscuro .tt{color:#8a6d3f;}
+.tile.oscuro .tt{color:#c9a86a;}/* oro claro sobre tinta; en oscuro la tarjeta se invierte (ver override abajo) */
 .tile.oscuro .tv{color:var(--crema);}
 .stackbar{display:flex;height:15px;border-radius:5px;overflow:hidden;margin-top:8px;background:var(--arena);}
 .stackbar .v{background:var(--verde);} .stackbar .a{background:var(--amar);} .stackbar .r{background:rgba(224,96,90,.55);}
@@ -144,7 +146,7 @@ header{background:var(--sup);border-bottom:1px solid var(--linea);padding:10px 1
 .carril{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px;font-size:11.5px;}
 .carril .et{min-width:56px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--carbon);}
 .nodo{border-radius:6px;padding:4px 10px;background:var(--arena);color:var(--carbon);}
-.nodo.amar{background:rgba(217,164,91,.14);color:#D9A45B;} .nodo.rojo{background:rgba(224,96,90,.14);color:#E0605A;} .nodo.verde{background:rgba(143,191,139,.14);color:#8FBF8B;}
+.nodo.amar{background:rgba(217,164,91,.14);color:var(--amar);} .nodo.rojo{background:rgba(224,96,90,.14);color:var(--rojo);} .nodo.verde{background:rgba(143,191,139,.14);color:var(--verde);}
 .flecha{color:var(--piedra);}
 
 /* ---------- modal / toast ---------- */
@@ -208,9 +210,9 @@ footer{max-width:1040px;margin:0 auto;padding:20px 18px 50px;color:var(--piedra)
 .ifhead b{color:var(--negro);font-weight:600;}
 .ifrow{display:flex;align-items:flex-start;gap:10px;padding:8px 4px;border-top:1px solid var(--linea);cursor:pointer;border-radius:7px;}
 .ifrow:first-child{border-top:0;}
-.ifrow:hover{background:rgba(255,255,255,.06);}
+.ifrow:hover{background:var(--arena);}
 .ipdot{width:9px;height:9px;border-radius:50%;margin-top:5px;flex:0 0 auto;}
-.ipdot.verde{background:var(--verde);}.ipdot.amar{background:var(--amar);}.ipdot.rojo{background:var(--rojo);}.ipdot.gris{background:var(--piedra);}
+.ipdot.verde{background:var(--verde);}.ipdot.amar{background:var(--amar);}.ipdot.rojo{background:var(--rojo);}.ipdot.gris{background:var(--piedra-fill);}
 .ifn{font-size:13px;}
 .ifu{font-size:9.5px;color:var(--rojo);border:1px solid rgba(224,96,90,.4);border-radius:9px;padding:1px 6px;margin-left:5px;}
 .ifs{font-size:11px;color:var(--piedra);margin-top:1px;}
@@ -244,7 +246,7 @@ footer{max-width:1040px;margin:0 auto;padding:20px 18px 50px;color:var(--piedra)
 .ghead .gl{position:sticky;left:0;z-index:6;background:var(--sup);border-right:1px solid var(--linea);flex:0 0 auto;display:flex;align-items:center;padding:0 10px;font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--carbon);}
 .ghead .mes{position:absolute;top:0;height:100%;border-left:1px solid var(--linea);font-size:9.5px;color:var(--carbon);padding:9px 0 0 6px;white-space:nowrap;overflow:hidden;}
 .gbody{position:relative;}
-.grow{display:flex;height:30px;align-items:center;border-bottom:1px solid rgba(255,255,255,.06);position:relative;}
+.grow{display:flex;height:30px;align-items:center;border-bottom:1px solid var(--linea);position:relative;}
 .grow.grp{height:26px;background:var(--arena);border-bottom:1px solid var(--linea);}
 .grow .gl{position:sticky;left:0;z-index:5;background:inherit;border-right:1px solid var(--linea);flex:0 0 auto;height:100%;display:flex;align-items:center;gap:6px;padding:0 10px;font-size:11px;cursor:pointer;overflow:hidden;white-space:nowrap;}
 .grow:not(.grp) .gl{background:var(--sup);}
@@ -261,11 +263,11 @@ svg.garrows path{fill:none;stroke:var(--oroc);stroke-width:1.3;}
 .ghoyl span{position:absolute;top:2px;left:3px;font-size:8.5px;color:var(--crema);background:var(--negro);border-radius:6px;padding:0 5px;}
 
 /* ===== Modo Dueño (editor total, sheet-driven) ===== */
-.adminbar{display:flex;align-items:center;gap:8px;background:linear-gradient(90deg,var(--sup),var(--crema));color:var(--crema);border:1px solid rgba(201,169,110,.45);border-radius:10px;padding:9px 14px;margin:10px 0 14px;font-size:12.5px;}
+.adminbar{display:flex;align-items:center;gap:8px;background:linear-gradient(90deg,var(--sup),var(--crema));color:var(--negro);border:1px solid rgba(201,169,110,.45);border-radius:10px;padding:9px 14px;margin:10px 0 14px;font-size:12.5px;}
 .adminbar .sp{flex:1;}
-.adminbar button{background:rgba(201,169,110,.16);color:#D8AE5E;border:1px solid rgba(201,169,110,.5);border-radius:9px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px;}
+.adminbar button{background:rgba(201,169,110,.16);color:var(--oroc);border:1px solid rgba(201,169,110,.5);border-radius:9px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px;}
 .adminbar button:hover{background:rgba(201,169,110,.3);}
-.adminbar button.out{background:transparent;border-color:rgba(244,241,234,.25);color:rgba(244,241,234,.7);}
+.adminbar button.out{background:transparent;border-color:var(--linea);color:var(--carbon);}
 .ilchip.adm{opacity:.55;}
 .ilchip.adm:hover{opacity:1;}
 .dchd{margin-top:8px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--piedra);}
@@ -308,7 +310,7 @@ svg.garrows path{fill:none;stroke:var(--oroc);stroke-width:1.3;}
 /* Modo claro: nav y controles legibles (las vars de Miramar están invertidas) */
 /* ===== MODO OSCURO (portero setea data-tema=oscuro; solo cubre 'claro',
    asi que la paleta oscura del board vive AQUI). Marca YOD: #17140F / #F1EDE3 / #B98B3C ===== */
-[data-tema="oscuro"]{--negro:#F1EDE3;--crema:#17140F;--arena:#231d14;--piedra:#8a7f6d;--carbon:#b3a892;
+[data-tema="oscuro"]{--negro:#F1EDE3;--crema:#17140F;--arena:#231d14;--piedra:#9A9182;--piedra-fill:#8a7f6d;--carbon:#b3a892;
   --linea:rgba(241,237,227,.12);--verde:#8FBF8B;--amar:#D9A45B;--rojo:#E0605A;--rojoclaro:#cf7a74;
   --azul:#d8b878;--oro:#B98B3C;--oroc:#d8b878;--sup:#211b12;}
 [data-tema="oscuro"] body{background:var(--crema)!important;color:var(--negro);color-scheme:dark;}
@@ -325,6 +327,8 @@ svg.garrows path{fill:none;stroke:var(--oroc);stroke-width:1.3;}
 .tile.oscuro{color:var(--crema);}
 .tile.oscuro .tv{color:var(--crema);}
 .tile.oscuro .tt{color:#c9a86a;}
+/* En oscuro la tarjeta 'oscura' se invierte a clara: el oro-texto baja a tinta dorada */
+[data-tema="oscuro"] .tile.oscuro .tt{color:#7d5f1e;}
 .vid{color:var(--crema);}
 .bita .tg{color:var(--crema);}
 .ghoyl span{color:var(--crema);}
