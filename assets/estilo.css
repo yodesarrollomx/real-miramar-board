@@ -344,3 +344,11 @@ header{padding-top:calc(10px + env(safe-area-inset-top))}
 
 /* ===== El canvas del shell YOD OS (shell.js) no voltea; que herede el fondo del tema ===== */
 .yod-canvas{background:transparent!important;color:var(--negro)!important;}
+
+/* Costos oficiales · avisos de caducidad (ago-2026) */
+.costaviso{margin:10px 0 16px;padding:11px 14px;border-radius:8px;font-size:13.5px;line-height:1.55;
+  background:rgba(154,106,30,.10);border:1px solid rgba(154,106,30,.34);color:var(--amar,#8a5f18);}
+.costtag-vencido{background:rgba(169,68,56,.14)!important;color:var(--rojo,#a94438)!important;
+  border:1px solid rgba(169,68,56,.4);font-weight:700;}
+[data-tema="oscuro"] .costaviso{background:rgba(217,164,91,.12);border-color:rgba(217,164,91,.36);color:#D9A45B;}
+[data-tema="oscuro"] .costtag-vencido{background:rgba(224,96,90,.16)!important;color:#E0605A!important;}

@@ -1,13 +1,23 @@
 <!DOCTYPE html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex"><title>Costos oficiales · Real de Miramar</title>
-<link rel="stylesheet" href="assets/estilo.css?v=27"><link rel="stylesheet" href="https://alexpueblag.github.io/yod-portal/os/shell.css">
+<link rel="stylesheet" href="assets/estilo.css?v=28"><link rel="stylesheet" href="https://alexpueblag.github.io/yod-portal/os/shell.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.24.0/dist/tabler-icons.min.css">
 <style>
 .costbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:18px 0}.costgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}.costcard{border:1px solid var(--linea);border-radius:14px;padding:16px;background:var(--papel,var(--sup))}.costcard h3{margin:5px 0 9px}.costmeta{font-size:12px;color:var(--piedra);line-height:1.5}.costamt{font-size:24px;margin:10px 0}.costtag{display:inline-block;padding:3px 8px;border-radius:20px;background:var(--arena);font-size:11px}.costwarn{color:var(--amar)}.costsrc{font-size:12px}.costsrc a{color:var(--oro)}
 </style></head><body><div id="nav"></div><main id="app"></main><footer>Real de Miramar · tarifas orientativas con fundamento oficial.</footer>
 <script src="assets/board.js?v=13"></script><script>
 var LEY='https://gestion.api.congresoson.gob.mx/assets/archivos/2025/12/oh_cgsfqGwj_0GaF5qPsad3N0WBHw31e.pdf';
+var LEY_ANIO=2026;  /* Ley de Ingresos: es anual. Al cambiar de año hay que traer la nueva. */
+/* La UMA cambia cada 1 de febrero. En vez de confiar en que alguien se acuerde,
+   el tablero calcula si la que trae sigue vigente y lo dice en pantalla. */
+function umaAnio(){ return new Date(UMA.vigente_desde+'T12:00:00').getFullYear(); }
+function umaVencida(){
+  var hoy=new Date(), corte=new Date(umaAnio()+1, 1, 1); /* 1-feb del año siguiente */
+  return hoy>=corte;
+}
+function leyVencida(){ return new Date().getFullYear()>LEY_ANIO; }
+function diasDesde(iso){ return Math.floor((Date.now()-new Date(iso).getTime())/86400000); }
 var UMA={diaria:117.31,mensual:3566.22,anual:42794.64,vigente_desde:'2026-02-01',verificada:'2026-07-15T12:00:00-07:00',fuente:'https://www.inegi.org.mx/contenidos/saladeprensa/boletines/2026/uma/uma2026.pdf'};
 var BASE=[
 ['T01','Anteproyecto','Art. 67.9','2.10 UMA por plano',2.10,2.10,'calculable'],['T02','Subdivisión','Art. 66.I','5 UMA recepción + 5 por lote resultante',20,20,'calculable'],
@@ -20,9 +30,22 @@ var BASE=[
 function mx(n){return n==null?'Por calcular':'$'+Math.round(n).toLocaleString('es-MX')+' MXN'}
 function rango(x){if(x[7]!=null)return mx(x[7]);if(x[4]==null)return'Variable';var a=x[4]*UMA.diaria,b=x[5]*UMA.diaria;return a===b?mx(a):mx(a)+' – '+mx(b)}
 window.renderPage=function(B){var g='<h1 class="serif">Costos oficiales</h1><p>Estimador trazable de derechos gubernamentales. No sustituye la liquidación de la autoridad.</p>'+
-'<div class="costbar"><span class="costtag">UMA 2026: $'+UMA.diaria.toFixed(2)+'/día</span><span id="cstamp" class="costmeta">Verificado '+new Date(UMA.verificada).toLocaleString('es-MX')+'</span><button class="btn" onclick="actualizar()"><i class="ti ti-refresh"></i> Actualizar cifras</button></div><div class="costgrid">';
-BASE.forEach(function(x){g+='<article class="costcard"><span class="costtag">'+x[0]+'</span><h3>'+x[1]+'</h3><div class="costamt">'+rango(x)+'</div><div>'+x[3]+'</div><p class="costmeta"><b>'+x[2]+'</b> · <span class="costwarn">'+x[6]+'</span></p><div class="costsrc"><a href="'+LEY+'" target="_blank" rel="noopener">Ley 114 · Guaymas 2026 ↗</a></div></article>'});
+'<div class="costbar"><span class="costtag'+(umaVencida()?' costtag-vencido':'')+'">UMA '+umaAnio()+': $'+UMA.diaria.toFixed(2)+'/día'+(umaVencida()?' · VENCIDA, revísala':'')+'</span>'+
+'<span id="cstamp" class="costmeta">Cifras revisadas el '+new Date(UMA.verificada).toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'})+' · hace '+diasDesde(UMA.verificada)+' días</span>'+
+'<button class="btn" onclick="actualizar()"><i class="ti ti-external-link"></i> Abrir fuentes oficiales</button></div>'+
+(umaVencida()||leyVencida()?'<p class="costaviso">⚠ '+(umaVencida()?'La UMA se actualiza cada 1 de febrero y la que usa este estimador es de '+umaAnio()+'. ':'')+(leyVencida()?'La Ley de Ingresos de Guaymas es anual y la referencia es de '+LEY_ANIO+'. ':'')+'Los importes de abajo están calculados con esos valores: verifícalos antes de usarlos.</p>':'')+
+'<div class="costgrid">';
+BASE.forEach(function(x){g+='<article class="costcard"><span class="costtag">'+x[0]+'</span><h3>'+x[1]+'</h3><div class="costamt">'+rango(x)+'</div><div>'+x[3]+'</div><p class="costmeta"><b>'+x[2]+'</b> · <span class="costwarn">'+x[6]+'</span></p><div class="costsrc"><a href="'+LEY+'" target="_blank" rel="noopener">Ley 114 · Guaymas '+LEY_ANIO+' ↗</a></div></article>'});
 B.$('app').innerHTML=g+'</div>';};
-window.actualizar=function(){var b=document.querySelector('.costbar .btn');b.disabled=true;b.textContent='Verificando…';Promise.all([fetch(UMA.fuente,{method:'HEAD',mode:'no-cors'}),fetch(LEY,{method:'HEAD',mode:'no-cors'})]).then(function(){var d=new Date();localStorage.setItem('rm_costos_verificados',d.toISOString());document.getElementById('cstamp').textContent='Fuentes consultadas '+d.toLocaleString('es-MX');Board.toast('Fuentes oficiales consultadas ✓');}).catch(function(){Board.toast('No se pudo consultar una fuente',true)}).finally(function(){b.disabled=false;b.innerHTML='<i class="ti ti-refresh"></i> Actualizar cifras'});};
+/* Antes este botón sellaba "Fuentes consultadas <hoy>" tras un HEAD no-cors, que
+   no puede leer ningún valor ni fallar de forma útil: sellaba frescura falsa sobre
+   cifras viejas. Ahora hace lo único honesto que puede hacer desde el navegador:
+   abrir las fuentes para que una persona las coteje. El sello solo lo mueve quien
+   edite las constantes de arriba. */
+window.actualizar=function(){
+  window.open(UMA.fuente,'_blank','noopener');
+  window.open(LEY,'_blank','noopener');
+  Board.toast('Abrí la UMA y la Ley de Ingresos. Si cambiaron, hay que actualizar las cifras de este estimador.');
+};
 Board.init({page:'costos',sub:'tarifas y métricas oficiales'});
 </script><script src="https://alexpueblag.github.io/potenciales-yod/portero.js"></script><script src="https://alexpueblag.github.io/yod-portal/os/shell.js"></script></body></html>
