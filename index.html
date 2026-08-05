@@ -44,7 +44,19 @@ window.renderPage=function(B){
   var bm=String(banda||"").match(/(\d+\s*[–-]\s*\d+)\s*meses/); // el rango sale del Sheet, no del HTML
   h+='<div class="idcard"><div class="k">Tiempo a la venta</div><div class="big">'+(bm?B.esc(bm[1].replace(/\s*-\s*/,"–")):"—")+' <small>meses</small></div>';
   h+='<div class="s2">'+B.esc(banda?banda.replace(/^P50:\s*/,"").split(".")[0]:"estimado a recepción de obra")+'</div>';
-  h+='<div class="ibar"><i style="width:14%"></i></div><div class="ilg"><span>llevamos ~3 meses</span><b>falta la mayor parte</b></div></div>';
+  /* Antes decía "llevamos ~3 meses" con la barra al 14%, ambos escritos a mano el
+     día que se tecleó. Ahora se cuenta desde el arranque real de los trámites: el
+     primer fecha_inicio_est que exista en el Sheet. Si no hay ninguno, no se
+     inventa un avance — se dice que falta el dato. */
+  var _tr=(window.__RM_TRAMITES__||[]), _ini=null;
+  _tr.forEach(function(t){ var f=t&&(t.ini||t.fecha_inicio_est); if(!f)return;
+    var d=new Date(String(f).slice(0,10)+'T12:00:00'); if(!isNaN(d)&&(!_ini||d<_ini))_ini=d; });
+  var _meses=_ini?Math.max(0,Math.round((Date.now()-_ini.getTime())/2629800000)):null;
+  var _tope=bm?Number(String(bm[1]).split(/[–-]/).pop().trim()):null;
+  var _pct=(_meses!=null&&_tope)?Math.min(100,Math.round(_meses/_tope*100)):null;
+  h+='<div class="ibar"><i style="width:'+(_pct==null?0:_pct)+'%"></i></div><div class="ilg">'+
+     '<span>'+(_meses==null?'falta la fecha de arranque':('llevamos '+_meses+(_meses===1?' mes':' meses')))+'</span>'+
+     '<b>'+(_pct==null?'—':(_pct<50?'falta la mayor parte':_pct<85?'a media obra':'en la recta final'))+'</b></div></div>';
   // dinero
   if(hayDinero){
     var porEj=presup-pag, pp=presup>0?Math.max(1,Math.round(pag/presup*100)):0;
@@ -137,6 +149,7 @@ window.renderPage=function(B){
   }
   function pintaGantt(lista,target,gf){
     var DIA=864e5, LW=gf?260:200, ROWH=30, GRPH=26, PXD=2.3;
+    try{window.__RM_TRAMITES__=lista;}catch(_e){}
     var items=lista.map(function(t){return {id:String(t.tramite_id),nombre:t.nombre,ico:String(t.icono||"").trim(),estado:B.clase(t.estado),ini:t.fecha_inicio_est,dur:Number(t.duracion_sem)||0,fin:t.fecha_real_fin,dep:t.depende_de,paquete:t.paquete_etapa,rc:String(t.ruta_critica||'').toLowerCase(),urg:/^si/i.test(String(t.urgente)),grpv:gf?String(t[gf]||'—'):String(t.paquete_etapa||'')};});
     function pf(s){s=String(s||'').trim();var m=s.match(/^(\d{4})(?:-(\d{1,2}))?(?:-(\d{1,2}))?/);if(!m)return null;return new Date(+m[1],(+(m[2]||1))-1,+(m[3]||1),12);}
     function aw(d,w){return new Date(d.getTime()+w*7*DIA);}
