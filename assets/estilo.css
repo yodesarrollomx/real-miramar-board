@@ -165,7 +165,8 @@ footer{max-width:1040px;margin:0 auto;padding:20px 18px 50px;color:var(--piedra)
 .ihero{background:var(--sup);border-radius:16px 16px 0 0;padding:20px 26px;position:relative;overflow:hidden;}
 .ihero::after{content:"";position:absolute;right:-50px;top:-50px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(201,169,110,.18),transparent 70%);}
 .ihero .row{display:flex;align-items:center;justify-content:space-between;gap:12px;}
-.ihero img{height:22px;filter:brightness(0) invert(1);opacity:.95;}
+.ihero img{height:22px;filter:brightness(0);opacity:.85;}
+[data-tema="oscuro"] .ihero img{filter:brightness(0) invert(1);opacity:.95;}
 .ihero .cotag{font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:var(--oroc);border:1px solid rgba(201,169,110,.4);border-radius:20px;padding:5px 12px;}
 .ihero h1{font-family:'Instrument Serif',Georgia,serif;font-size:30px;font-weight:700;color:var(--negro);margin-top:10px;line-height:1.05;}
 .ihero .sub{color:var(--carbon);font-size:12px;margin-top:2px;}
