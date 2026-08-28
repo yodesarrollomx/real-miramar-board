@@ -46,12 +46,68 @@ function _pyodAviso(){ if(document.getElementById("pyodAviso"))return; var d=doc
 /* ANTI-LOOP (agosto 2026): dominio suspendido → el backend contesta "liga" a
    la clave del portero de respaldo aunque la sesión sea válida. Antes esto
    borraba la credencial y recargaba = bucle. Ahora solo avisa; la sesión se
-   suelta únicamente desde "Salir". El respaldo local (datos.json) cubre el resto. */
+   suelta únicamente desde "Salir". El respaldo local (datos.enc, cifrado) cubre el resto. */
 function credencialRechazada(){ _pyodAviso(); }
 
 /* ---------- fetch único con caché TTL ---------- */
 function leerCache(){try{var c=JSON.parse(localStorage.getItem(CACHE_KEY));if(c&&c.j&&c.j.tablas)return c;}catch(e){}return null;}
 function guardarCache(j){try{localStorage.setItem(CACHE_KEY,JSON.stringify({t:Date.now(),j:j}));}catch(e){}}
+/* Descifra el respaldo empacado. Mismo esquema que el pintarrón y que el board
+   de inversión: openssl -aes-256-cbc -pbkdf2 -iter 200000 -md sha256 -salt -base64.
+   La frase NO va escrita aquí: la trae el usuario en su credencial del Portero.
+   Si estuviera en este archivo, el cifrado sería decorativo. */
+var RESPALDO_SSK = "yod_respaldo_clave";
+function _b64aBytes(b64){
+  var bin = atob(String(b64).replace(/\s+/g, ""));
+  var u = new Uint8Array(bin.length);
+  for (var i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+  return u;
+}
+function descifrarRespaldo(b64, pass){
+  var raw = _b64aBytes(b64);
+  if (raw.length < 16 || String.fromCharCode.apply(null, raw.slice(0, 8)) !== "Salted__")
+    return Promise.reject(new Error("formato inesperado"));
+  var salt = raw.slice(8, 16), cipher = raw.slice(16);
+  return crypto.subtle.importKey("raw", new TextEncoder().encode(pass), "PBKDF2", false, ["deriveBits"])
+    .then(function(pk){
+      return crypto.subtle.deriveBits({ name:"PBKDF2", salt:salt, iterations:200000, hash:"SHA-256" }, pk, 384);
+    }).then(function(bits){
+      var b = new Uint8Array(bits);
+      return crypto.subtle.importKey("raw", b.slice(0,32), { name:"AES-CBC" }, false, ["decrypt"])
+        .then(function(ak){ return crypto.subtle.decrypt({ name:"AES-CBC", iv:b.slice(32,48) }, ak, cipher); });
+    }).then(function(plano){ return JSON.parse(new TextDecoder().decode(plano)); });
+}
+/* Baja datos.enc y lo abre con la primera frase que sirva: la credencial del
+   Portero, la ya validada en esta pestaña, o —solo si no hay otra— una que se
+   pide una vez. Sin frase válida lanza respaldo_ilegible y NO se pinta nada. */
+function cargarRespaldoCifrado(credFn){
+  return fetch("datos.enc?cb=" + Date.now(), { cache:"no-store" }).then(function(r){
+    if (!r.ok) throw new Error("http_" + r.status);
+    return r.text();
+  }).then(function(b64){
+    b64 = b64.trim();
+    var frases = [], k = credFn();
+    if (k) frases.push(k);
+    try { var g = sessionStorage.getItem(RESPALDO_SSK); if (g && frases.indexOf(g) === -1) frases.push(g); } catch(e){}
+    function intenta(i){
+      if (i >= frases.length){
+        var t = "";
+        try { t = (window.prompt("El servidor no responde. Escribe la clave del equipo para abrir el respaldo:") || "").trim(); } catch(e){}
+        if (!t) throw new Error("respaldo_ilegible");
+        return descifrarRespaldo(b64, t).then(function(j){
+          try { sessionStorage.setItem(RESPALDO_SSK, t); } catch(e){}
+          return j;
+        }).catch(function(){ throw new Error("respaldo_ilegible"); });
+      }
+      return descifrarRespaldo(b64, frases[i]).then(function(j){
+        try { sessionStorage.setItem(RESPALDO_SSK, frases[i]); } catch(e){}
+        return j;
+      }).catch(function(){ return intenta(i + 1); });
+    }
+    return intenta(0);
+  });
+}
+
 function fetchBoard(fin,cb){
   /* Sin credencial del Portero no se pide nada: el gate del Portero (portero.js)
      está cubriendo la pantalla para iniciar sesión. Evita el bucle de recarga. */
@@ -85,14 +141,23 @@ function cargar(cb){
     if(!err){if(fk&&j.meta&&j.meta.incluye_financiero)FIN=fk;DATA=j;setBadge("live",FIN?"En vivo · interno":"En vivo");cb();}
     else if(credencial()&&c){DATA=c.j;setBadge("cache","Copia guardada");cb();}   /* caché solo con credencial */
     else{
-      /* Respaldo empacado (agosto 2026): foto del Sheet en datos.json, para que
+      /* Respaldo empacado (agosto 2026): foto del Sheet, ahora cifrada, para que
          Miramar nunca aparezca en blanco mientras el dominio esté suspendido.
          Solo lectura; al reactivar Google, el fetch en vivo vuelve a mandar. */
-      fetch("datos.json?cb="+Date.now(),{cache:"no-store"}).then(function(r){return r.json();}).then(function(dj){
+      /* El respaldo va CIFRADO (datos.enc). Antes era datos.json en claro y se
+         pintaba a cualquiera que abriera la liga sin credencial: el gate es
+         portero.js, que corre en el navegador y no protege el archivo. */
+      cargarRespaldoCifrado(credencial).then(function(dj){
+        dj = (dj && dj.data) || dj;
         if(dj&&dj.tablas){DATA=dj;setBadge("cache","Respaldo local");cb();}
         else throw new Error("respaldo sin tablas");
-      }).catch(function(){
-        setBadge("error","Sin datos");var a=$("app");if(a)a.insertAdjacentHTML("afterbegin",'<div class="gatebanner">No se pudo cargar el tablero. Revisa la conexión.</div>');
+      }).catch(function(e){
+        var sinLlave = e && e.message === "respaldo_ilegible";
+        setBadge("error", sinLlave ? "Inicia sesión" : "Sin datos");
+        var a=$("app");
+        if(a)a.insertAdjacentHTML("afterbegin",'<div class="gatebanner">'+(sinLlave
+          ? 'Necesitas iniciar sesión para ver este tablero.'
+          : 'No se pudo cargar el tablero. Revisa la conexión.')+'</div>');
       });
     }
   });
