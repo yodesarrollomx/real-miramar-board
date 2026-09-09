@@ -246,7 +246,23 @@ window.renderPage=function(B){
   window.cerrarDrw=function(){B.$("idrw").className="";B.$("idrwov").className="";};
   function editKey(){try{return sessionStorage.getItem("rm_edit_v1")||"";}catch(e){return"";}}
   function adminKey(){try{return sessionStorage.getItem("rm_admin_v1")||"";}catch(e){return"";}}
-  window.entrarAdmin=function(){var k=prompt("Clave del dueño (Modo Dueño)");if(!k)return;try{sessionStorage.setItem("rm_admin_v1",k.trim());}catch(e){}window.renderPage(B);};
+  /* Antes esto guardaba lo que fuera y pintaba la barra al toque: la clave real
+     solo se comprobaba hasta el primer "Guardar", así que cualquiera veía el
+     Modo Dueño con cualquier texto. Ahora se manda al servidor y SOLO si
+     confirma (igual que la clave financiera) se guarda y se pinta la barra. */
+  window.entrarAdmin=function(){
+    var k=(prompt("Clave del dueño (Modo Dueño)")||"").trim();if(!k)return;
+    B.toast("Comprobando clave…");
+    B.validarAdmin(k,function(veredicto){
+      if(veredicto==="no"){B.toast("Clave del dueño incorrecta",true);return;}
+      try{sessionStorage.setItem("rm_admin_v1",k);}catch(e){}
+      /* "nosabe" = el servidor todavía no sabe validar esta clave (le falta el
+         cambio en el Apps Script). Se entra igual que siempre, pero de frente:
+         cada guardado seguirá rebotando si la clave no es la buena. */
+      if(veredicto==="nosabe")B.toast("No pude comprobar la clave con el servidor: si no es la correcta, cada cambio será rechazado",true);
+      window.renderPage(B);
+    });
+  };
   window.salirAdmin=function(){try{sessionStorage.removeItem("rm_admin_v1");}catch(e){}window.renderPage(B);};
   function adminFallo(j){if(j&&(j.error==="clave incorrecta"||j.error==="solo admin"||j.error==="solo admin crea trámites")){try{sessionStorage.removeItem("rm_admin_v1");}catch(e){}B.toast("Clave del dueño incorrecta",true);return true;}return false;}
   window.toggleEnt=function(id,idx){

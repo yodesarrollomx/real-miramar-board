@@ -198,6 +198,33 @@ function pedirFin(cb){
   };
 }
 
+/* Valida la clave del "Modo Dueño" contra el servidor, con el MISMO principio
+   que la clave financiera (pedirFin): no se confía en lo que el usuario tecleó,
+   se confía en lo que el servidor confirma. Antes, el prompt() guardaba
+   cualquier texto y pintaba la barra de administración de inmediato: la clave
+   real solo se comprobaba hasta el primer intento de guardar, ya con la barra
+   abierta.
+
+   Contesta una de tres, y la tercera importa: el Code.gs vivo TODAVIA no
+   entiende el parámetro `admin=` (ese cambio se pega a mano en el editor de
+   Apps Script y no está en este repo). Mientras no lo entienda, `es_admin`
+   llega indefinido y decimos "nosabe" en vez de "no": si dijéramos "no",
+   Alejandro se quedaría sin Modo Dueño el día que esto se publique. Con
+   "nosabe" entra igual que hoy, pero avisado — y el día que el servidor
+   aprenda a contestar, esta misma función se vuelve estricta sola.
+
+   Lo que falta en el servidor: que `recurso=board` acepte `admin=<clave>` como
+   ya acepta `fin=<clave>`, y devuelva `meta.es_admin` true o false. */
+function validarAdmin(k,cb){
+  var url=CONFIG.SHEET_URL+"?recurso=board&k="+encodeURIComponent(credencial())+"&admin="+encodeURIComponent(k)+"&cb="+Date.now();
+  var ctrl=new AbortController();var to=setTimeout(function(){ctrl.abort();},FETCH_TIMEOUT);
+  fetch(url,{signal:ctrl.signal,credentials:'omit'}).then(function(r){return r.json();}).then(function(j){
+    clearTimeout(to);
+    var v=j&&j.meta?j.meta.es_admin:undefined;
+    cb(v===true?"si":(v===false?"no":"nosabe"));
+  }).catch(function(){clearTimeout(to);cb("nosabe");});
+}
+
 /* ---------- nav común (inyectada: cero drift entre páginas) ---------- */
 function pintarNav(){
   var el=$("nav");if(!el)return;
@@ -344,7 +371,7 @@ window.Board={init:init,tabla:tabla,config:config,resumen:resumen,meta:meta,
   frontera:frontera,etaDe:etaDe,fmtEta:fmtEta,etaEtapa:etaEtapa,
   puertasCalc:puertasCalc,ventaHabilitada:ventaHabilitada,videosPor:videosPor,
   docsVigentes:docsVigentes,docMeta:docMeta,docUrl:docUrl,docsDeTramite:docsDeTramite,tramitePor:tramitePor,
-  lite:lite,unlocked:unlocked,fin:function(){return FIN;},post:post,
+  lite:lite,unlocked:unlocked,fin:function(){return FIN;},post:post,validarAdmin:validarAdmin,
   modal:modal,cerrarModal:cerrarModal,toast:toast,refrescar:refrescar,
   $:$, esc:esc, money:money, clase:clase, fmtFecha:fmtFecha};
 })();
