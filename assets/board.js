@@ -363,6 +363,14 @@ function init(opts){
   if(!$("toast"))document.body.insertAdjacentHTML("beforeend",'<div id="toast"></div>');
   var arranca=function(){cargar(function(){if(window.renderPage)window.renderPage(Board);});};
   if(OPTS.acceso==="clave"&&!unlocked()){porteroIntento(function(ok){if(ok)arranca();else pedirClave(arranca);});return;}
+  /* Páginas sin `acceso:"clave"` (el hub, evidencia) son público-lite a propósito:
+     un desconocido no debe ver precios (R04, anti-PROFECO). Pero antes NUNCA se
+     preguntaba por la sesión del Portero, así que a Alejandro —autenticado como
+     admin en el mismo origen— el hub le pintaba 🔒 en los SEIS escalones, incluidos
+     los dos ya cerrados. Ahora sí se intenta el canje, en silencio y sin pedir
+     clave: si la sesión es válida se sale de lite y se repinta; si no, el tablero
+     se queda exactamente como estaba. */
+  if(!unlocked()){porteroIntento(function(ok){ if(ok&&DATA){ if(window.renderPage)window.renderPage(Board); } });}
   arranca();
 }
 
