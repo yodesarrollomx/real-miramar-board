@@ -36,7 +36,7 @@ window.renderPage=function(B){
   h+='<div class="idonde"><div class="lbl">¿Dónde estamos?</div><div class="grid3">';
   // avance
   h+='<div class="idcard"><div class="k">Avance</div><div class="big">Etapa '+(curi+1)+'<small> de '+hitos.length+'</small></div>';
-  h+='<div class="s2">'+B.esc((hitos[curi]?hitos[curi].nombre:"").replace(/\s*\(cerrada\)/,"").replace(/\s*—.*$/,""))+(pt?(' · candados '+pv+'/'+pt):'')+'</div>';
+  h+='<div class="s2">'+B.esc((hitos[curi]?hitos[curi].nombre:"").replace(/\s*\(cerrada\)/,"").replace(/\s*—.*$/,""))+(pt?(' · '+pv+' de '+pt+' puertas legales abiertas'):'')+'</div>';
   h+='<div class="ibar"><i style="width:'+Math.round(curi/Math.max(1,hitos.length-1)*100)+'%"></i></div>';
   h+='<div class="ilg"><span>'+verde+' de '+tr.length+' trámites hechos</span><b>'+(tr.length?Math.round(verde/tr.length*100):0)+'%</b></div></div>';
   // tiempo
@@ -45,17 +45,33 @@ window.renderPage=function(B){
   h+='<div class="idcard"><div class="k">Tiempo a la venta</div><div class="big">'+(bm?B.esc(bm[1].replace(/\s*-\s*/,"–")):"—")+' <small>meses</small></div>';
   h+='<div class="s2">'+B.esc(banda?banda.replace(/^P50:\s*/,"").split(".")[0]:"estimado a recepción de obra")+'</div>';
   /* Antes decía "llevamos ~3 meses" con la barra al 14%, ambos escritos a mano el
-     día que se tecleó. Ahora se cuenta desde el arranque real de los trámites: el
-     primer fecha_inicio_est que exista en el Sheet. Si no hay ninguno, no se
-     inventa un avance — se dice que falta el dato. */
-  var _tr=(window.__RM_TRAMITES__||[]), _ini=null;
-  _tr.forEach(function(t){ var f=t&&(t.ini||t.fecha_inicio_est); if(!f)return;
-    var d=new Date(String(f).slice(0,10)+'T12:00:00'); if(!isNaN(d)&&(!_ini||d<_ini))_ini=d; });
+     día que se tecleó. Después pasó a contarse solo, pero con DOS fallas: leía
+     `window.__RM_TRAMITES__`, que la pinta el Gantt DESPUÉS de este bloque (así
+     que siempre salía "falta la fecha de arranque"), y tomaba el primer
+     fecha_inicio_est — que es una fecha ESTIMADA y, al recorrer el plan, se va
+     al futuro. Ahora el arranque es el dato duro: la fecha real de cierre más
+     vieja de los trámites ya hechos. Si no hay ninguno, no se inventa. */
+  var _ini=null;
+  tr.forEach(function(t){ if(B.clase(t.estado)!=="verde")return; var f=t&&t.fecha_real_fin; if(!f)return;
+    var d=new Date(String(f).slice(0,10).replace(/^(\d{4})-(\d{2})$/,'$1-$2-01')+'T12:00:00');
+    if(!isNaN(d)&&(!_ini||d<_ini))_ini=d; });
   var _meses=_ini?Math.max(0,Math.round((Date.now()-_ini.getTime())/2629800000)):null;
-  var _tope=bm?Number(String(bm[1]).split(/[–-]/).pop().trim()):null;
-  var _pct=(_meses!=null&&_tope)?Math.min(100,Math.round(_meses/_tope*100)):null;
+  /* Lo que FALTA sale del plan recorrido, no de una resta contra la banda: el
+     cierre del último trámite = su inicio estimado + su duración. Así la barra
+     mide avance real (lo andado contra lo andado + lo que falta) y no compara
+     meses transcurridos contra una banda que se cuenta desde hoy. */
+  var _fin=null;
+  tr.forEach(function(t){ if(B.clase(t.estado)==="verde")return;
+    var f=String(t.fecha_inicio_est||'').slice(0,10); if(!f)return;
+    var d=new Date(f+'T12:00:00'); if(isNaN(d))return;
+    d=new Date(d.getTime()+(Number(t.duracion_sem)||4)*7*864e5);
+    if(!_fin||d>_fin)_fin=d; });
+  var _faltan=_fin?Math.max(0,Math.round((_fin.getTime()-Date.now())/2629800000)):null;
+  var _pct=(_meses!=null&&_faltan!=null&&(_meses+_faltan)>0)?Math.round(_meses/(_meses+_faltan)*100):null;
+  var _fmes=_fin?_fin.toLocaleDateString('es-MX',{month:'short',year:'numeric'}):null;
   h+='<div class="ibar"><i style="width:'+(_pct==null?0:_pct)+'%"></i></div><div class="ilg">'+
-     '<span>'+(_meses==null?'falta la fecha de arranque':('llevamos '+_meses+(_meses===1?' mes':' meses')))+'</span>'+
+     '<span>'+(_meses==null?'falta la fecha de arranque':('llevamos '+_meses+(_meses===1?' mes':' meses')))+
+       (_faltan!=null?(' · faltan ~'+_faltan+' al último trámite ('+B.esc(_fmes)+')'):'')+'</span>'+
      '<b>'+(_pct==null?'—':(_pct<50?'falta la mayor parte':_pct<85?'a media obra':'en la recta final'))+'</b></div></div>';
   // dinero
   if(hayDinero){
