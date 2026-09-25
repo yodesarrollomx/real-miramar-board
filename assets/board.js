@@ -31,7 +31,7 @@ function unlocked(){try{if(sessionStorage.getItem("RM_PORTERO")==="ok")return tr
    sesión compartido, se valida contra su /exec y abre la vista sin pedir clave. */
 function porteroIntento(cb){var t=null;try{t=localStorage.getItem("pyod_clave_v1");}catch(e){}
   if(!t||String(t).indexOf("sy")!==0){cb(false);return;}
-  try{fetch(window.YOD_PORTERO.original+"?recurso=canje&board=RM&t="+encodeURIComponent(t),{credentials:'omit'})
+  try{fetch((window.YOD_PORTERO||{}).original+"?recurso=canje&board=RM&t="+encodeURIComponent(t),{credentials:'omit'})
     .then(function(r){return r.json();})
     .then(function(d){if(d&&d.ok){try{sessionStorage.setItem("RM_PORTERO","ok");}catch(e){}cb(true);}else cb(false);})
     .catch(function(){cb(false);});}catch(e){cb(false);}}
@@ -40,7 +40,7 @@ function finGuardada(){try{return sessionStorage.getItem(FIN_KEY)||"";}catch(e){
 /* Credencial del Portero (misma llave que portero.js): viaja como k en CADA petición.
    El backend la valida server-to-server; sin ella no entrega ni un dato (fail-closed). */
 function credencial(){try{return localStorage.getItem("pyod_clave_v1")||"";}catch(e){return"";}}
-var PYOD_EXEC=window.YOD_PORTERO.original;   /* única copia: yod-portal/os/yod-acceso.js */
+var PYOD_EXEC=(window.YOD_PORTERO||{}).original;   /* única copia: yod-portal/os/yod-acceso.js */
 function _pyodCerrar(){try{localStorage.removeItem("pyod_clave_v1");localStorage.removeItem(CACHE_KEY);sessionStorage.removeItem("RM_PORTERO");sessionStorage.removeItem("pyod_rol");}catch(e){}location.reload();}
 function _pyodAviso(){ if(document.getElementById("pyodAviso"))return; var d=document.createElement("div");d.id="pyodAviso";d.style.cssText="position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:2147483000;max-width:min(560px,92vw);background:#221E17;color:#F1EDE3;border:1px solid rgba(255,255,255,.14);border-left:3px solid #B98B3C;border-radius:12px;padding:14px 16px;font-family:'Instrument Sans',system-ui,sans-serif;font-size:13px;line-height:1.5;box-shadow:0 18px 48px rgba(0,0,0,.5)";d.innerHTML='<b style=\"color:#B98B3C\">Tu sesión es válida.</b> Este tablero no validó tu acceso: su backend (Apps Script) necesita re-desplegarse. Tu sesión NO se cerró. <a href=\"https://yodesarrollomx.github.io/yod-portal/os/\" style=\"color:#B98B3C\">Volver a YOD OS</a> · <button id=\"pyodAvX\" style=\"background:none;border:0;color:#8A8272;cursor:pointer;text-decoration:underline;font:inherit\">Ocultar</button>';document.body.appendChild(d);var x=document.getElementById("pyodAvX");if(x)x.onclick=function(){d.remove();}; }
 /* ANTI-LOOP (agosto 2026): dominio suspendido → el backend contesta "liga" a
